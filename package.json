@@ -1,0 +1,24 @@
+{
+  "name": "AliveEngine",
+  "version": "1.0.0",
+  "description": "",
+  "main": "webpack.config.js",
+  "devDependencies": {
+    "babel-cli": "^6.10.1",
+    "babel-core": "^6.10.4",
+    "babel-loader": "^6.2.4",
+    "babel-preset-es2015": "^6.9.0",
+    "webpack": "^1.13.1",
+    "webpack-dev-server": "^1.14.1"
+  },
+  "dependencies": {
+    "babel-polyfill": "^6.9.1"
+  },
+  "scripts": {
+    "build": "NODE_ENV=production webpack --config webpack.config.js --progress --colors",
+    "dev": "NODE_ENV=development webpack-dev-server --config webpack.config.js --progress --colors --hot --inline",
+    "test": "echo \"Error: no test specified\" && exit 1"
+  },
+  "author": "",
+  "license": "MIT"
+}
