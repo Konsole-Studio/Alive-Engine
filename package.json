@@ -17,6 +17,7 @@
   "scripts": {
     "build": "NODE_ENV=production webpack --config webpack.config.js --progress --colors",
     "dev": "NODE_ENV=development webpack-dev-server --config webpack.config.js --progress --colors --hot --inline",
+    "graph": "madge --image graph.svg ./project/game.js",
     "test": "echo \"Error: no test specified\" && exit 1"
   },
   "author": "",
