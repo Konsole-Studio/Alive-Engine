@@ -2,6 +2,15 @@ import fragmentShaderText from './shaders/shader.fs';
 import vertexShaderText from './shaders/shader.vs';
 import { boxVertices, boxIndices } from './vertices/box.js';
 import { glMatrix, mat4 } from 'gl-matrix';
+import Stats from 'stats-js';
+
+/* FPS stats config */
+var stats = new Stats();
+stats.setMode(0);
+stats.domElement.style.position = 'absolute';
+stats.domElement.style.left = '0px';
+stats.domElement.style.top = '0px';
+document.body.appendChild(stats.domElement);
 
 export default class Game {
   constructor(config) {
@@ -141,6 +150,8 @@ export default class Game {
     mat4.identity(identityMatrix);
     let angle;
     let loop = () => {
+      stats.begin();
+
       angle = performance.now() / 1000 / 6 * 2 * Math.PI;
       mat4.rotate(yRotationMatrix, identityMatrix, angle, [0, 1, 0]);
       mat4.rotate(xRotationMatrix, identityMatrix, angle / 4, [1, 0, 0]);
@@ -155,6 +166,8 @@ export default class Game {
 
       gl.drawElements(gl.TRIANGLES, boxIndices.length, gl.UNSIGNED_SHORT, 0);
       requestAnimationFrame(loop);
+
+      stats.end();
     };
 
     requestAnimationFrame(loop);
