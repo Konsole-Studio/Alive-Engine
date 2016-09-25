@@ -14,6 +14,11 @@ var webPackConfig = {
         exclude: /node_modules/,
         loader: 'babel',
       },
+      {
+        test: /\.(frag|vert|fs|vs|glsl)$/,
+        exclude: /node_modules/,
+        loader: 'raw-loader',
+      },
     ],
   },
   devServer: {

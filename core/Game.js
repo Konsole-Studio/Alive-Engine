@@ -1,5 +1,5 @@
-import fragmentShaderText from './shaders/fragment.js';
-import vertexShaderText from './shaders/vertex.js';
+import fragmentShaderText from './shaders/shader.fs';
+import vertexShaderText from './shaders/shader.vs';
 import { boxVertices, boxIndices } from './vertices/box.js';
 import { glMatrix, mat4 } from 'gl-matrix';
 
@@ -80,26 +80,40 @@ export default class Game {
     gl.bufferData(gl.ELEMENT_ARRAY_BUFFER, new Uint16Array(boxIndices), gl.STATIC_DRAW);
 
     let positionAttribLocation = gl.getAttribLocation(program, 'vertPosition');
-    let colorAttribLocation = gl.getAttribLocation(program, 'vertColor');
+    let texCoordAttribLocation = gl.getAttribLocation(program, 'vertTexCoord');
+
     gl.vertexAttribPointer(
       positionAttribLocation, // attribute location
       3, // Number of elements per attribute
       gl.FLOAT, // type of the elements
       gl.FALSE,
-      6 * Float32Array.BYTES_PER_ELEMENT, // Size of an individual vertex (2 * 4)
+      5 * Float32Array.BYTES_PER_ELEMENT, // Size of an individual vertex (2 * 4)
       0 // offset from the beginning of a single vertex to this attribute
     );
+
     gl.vertexAttribPointer(
-      colorAttribLocation, // attribute location
-      3,
+      texCoordAttribLocation, // attribute location
+      2,
       gl.FLOAT,
       gl.FALSE,
-      6 * Float32Array.BYTES_PER_ELEMENT,
+      5 * Float32Array.BYTES_PER_ELEMENT,
       3 * Float32Array.BYTES_PER_ELEMENT
     );
 
     gl.enableVertexAttribArray(positionAttribLocation);
-    gl.enableVertexAttribArray(colorAttribLocation);
+    gl.enableVertexAttribArray(texCoordAttribLocation);
+
+    let textureImage = new Image();
+    textureImage.src = './crate.png';
+
+    let boxTexture = gl.createTexture();
+    gl.bindTexture(gl.TEXTURE_2D, boxTexture);
+    gl.texParameteri(gl.TEXTURE_2D, gl.TEXTURE_WRAP_S, gl.CLAMP_TO_EDGE);
+    gl.texParameteri(gl.TEXTURE_2D, gl.TEXTURE_WRAP_T, gl.CLAMP_TO_EDGE);
+    gl.texParameteri(gl.TEXTURE_2D, gl.TEXTURE_MIN_FILTER, gl.LINEAR);
+    gl.texParameteri(gl.TEXTURE_2D, gl.TEXTURE_MAG_FILTER, gl.LINEAR);
+    gl.texImage2D(gl.TEXTURE_2D, 0, gl.RGBA, gl.RGBA, gl.UNSIGNED_BYTE, textureImage);
+    gl.bindTexture(gl.TEXTURE_2D, null);
 
     gl.useProgram(program);
 
@@ -135,6 +149,10 @@ export default class Game {
 
       gl.clearColor(0.75, 0.85, 0.81, 1.0);
       gl.clear(gl.DEPTH_BUFFER_BIT | gl.COLOR_BUFFER_BIT);
+
+      gl.bindTexture(gl.TEXTURE_2D, boxTexture);
+      gl.activeTexture(gl.TEXTURE0);
+
       gl.drawElements(gl.TRIANGLES, boxIndices.length, gl.UNSIGNED_SHORT, 0);
       requestAnimationFrame(loop);
     };
