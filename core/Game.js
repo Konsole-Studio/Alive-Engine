@@ -12,6 +12,9 @@ stats.domElement.style.left = '0px';
 stats.domElement.style.top = '0px';
 document.body.appendChild(stats.domElement);
 
+var gl;
+var canvas;
+
 export default class Game {
   constructor(config) {
     let {
@@ -19,21 +22,19 @@ export default class Game {
       width,
       height,
     } = config;
-
-    let canvasElement = document.getElementById(canvasId);
-    canvasElement.setAttribute('width', width);
-    canvasElement.setAttribute('height', height);
-
+    /* Game vars */
     this.assets = [];
     this.actors = [];
     this.scenes = [];
-    this.canvas = canvasElement;
+    /* setting config definition */
+    canvas = document.getElementById(canvasId);
+    canvas.setAttribute('width', width);
+    canvas.setAttribute('height', height);
+    gl = canvas.getContext('webgl') || canvas.getContext('experimental-webgl');
     this.initWebgl.bind(this)();
   }
 
   initWebgl() {
-    let { canvas } = this;
-    let gl = canvas.getContext('webgl') || canvas.getContext('experimental-webgl');
     if (!gl) {
       console.log('WebGl not supported');
       return;
@@ -113,16 +114,20 @@ export default class Game {
     gl.enableVertexAttribArray(texCoordAttribLocation);
 
     let textureImage = new Image();
-    textureImage.src = './crate.png';
+    textureImage.src = '  ./crate.png';
 
     let boxTexture = gl.createTexture();
-    gl.bindTexture(gl.TEXTURE_2D, boxTexture);
-    gl.texParameteri(gl.TEXTURE_2D, gl.TEXTURE_WRAP_S, gl.CLAMP_TO_EDGE);
-    gl.texParameteri(gl.TEXTURE_2D, gl.TEXTURE_WRAP_T, gl.CLAMP_TO_EDGE);
-    gl.texParameteri(gl.TEXTURE_2D, gl.TEXTURE_MIN_FILTER, gl.LINEAR);
-    gl.texParameteri(gl.TEXTURE_2D, gl.TEXTURE_MAG_FILTER, gl.LINEAR);
-    gl.texImage2D(gl.TEXTURE_2D, 0, gl.RGBA, gl.RGBA, gl.UNSIGNED_BYTE, textureImage);
-    gl.bindTexture(gl.TEXTURE_2D, null);
+    let assetsReady = false;
+    textureImage.onload = () => {
+      assetsReady = true;
+      gl.bindTexture(gl.TEXTURE_2D, boxTexture);
+      gl.texParameteri(gl.TEXTURE_2D, gl.TEXTURE_WRAP_S, gl.CLAMP_TO_EDGE);
+      gl.texParameteri(gl.TEXTURE_2D, gl.TEXTURE_WRAP_T, gl.CLAMP_TO_EDGE);
+      gl.texParameteri(gl.TEXTURE_2D, gl.TEXTURE_MIN_FILTER, gl.LINEAR);
+      gl.texParameteri(gl.TEXTURE_2D, gl.TEXTURE_MAG_FILTER, gl.LINEAR);
+      gl.texImage2D(gl.TEXTURE_2D, 0, gl.RGBA, gl.RGBA, gl.UNSIGNED_BYTE, textureImage);
+      gl.bindTexture(gl.TEXTURE_2D, null);
+    };
 
     gl.useProgram(program);
 
@@ -151,25 +156,30 @@ export default class Game {
     let angle;
     let loop = () => {
       stats.begin();
+      if (!assetsReady) {
+        // Nothing
+      } else {
+        angle = performance.now() / 1000 / 6 * 2 * Math.PI;
+        mat4.rotate(yRotationMatrix, identityMatrix, angle, [0, 1, 0]);
+        mat4.rotate(xRotationMatrix, identityMatrix, angle / 4, [1, 0, 0]);
+        mat4.mul(worldMatrix, xRotationMatrix, yRotationMatrix);
+        gl.uniformMatrix4fv(matWorldUniformLocation, gl.FALSE, worldMatrix);
 
-      angle = performance.now() / 1000 / 6 * 2 * Math.PI;
-      mat4.rotate(yRotationMatrix, identityMatrix, angle, [0, 1, 0]);
-      mat4.rotate(xRotationMatrix, identityMatrix, angle / 4, [1, 0, 0]);
-      mat4.mul(worldMatrix, xRotationMatrix, yRotationMatrix);
-      gl.uniformMatrix4fv(matWorldUniformLocation, gl.FALSE, worldMatrix);
+        gl.clearColor(0.75, 0.85, 0.81, 1.0);
+        gl.clear(gl.DEPTH_BUFFER_BIT | gl.COLOR_BUFFER_BIT);
 
-      gl.clearColor(0.75, 0.85, 0.81, 1.0);
-      gl.clear(gl.DEPTH_BUFFER_BIT | gl.COLOR_BUFFER_BIT);
+        gl.bindTexture(gl.TEXTURE_2D, boxTexture);
+        gl.activeTexture(gl.TEXTURE0);
 
-      gl.bindTexture(gl.TEXTURE_2D, boxTexture);
-      gl.activeTexture(gl.TEXTURE0);
+        gl.drawElements(gl.TRIANGLES, boxIndices.length, gl.UNSIGNED_SHORT, 0);
+      }
 
-      gl.drawElements(gl.TRIANGLES, boxIndices.length, gl.UNSIGNED_SHORT, 0);
       requestAnimationFrame(loop);
 
       stats.end();
     };
 
     requestAnimationFrame(loop);
+
   }
 };

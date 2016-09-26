@@ -1,6 +1,6 @@
 export default {
   canvasId: 'canvas',
-  width: 320,
-  height: 240,
+  width: window.innerWidth,
+  height: window.innerHeight,
   roomsMaps: '?',
 };
